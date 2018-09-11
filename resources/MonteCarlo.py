@@ -1,5 +1,5 @@
 from random import random
-import scipy.stats
+from scipy.stats import norm
 
 
 def foo(X):
@@ -56,5 +56,5 @@ def inverse_discrete_power_law(x,xmin,alpha):
 # Useful statistics functions
 def Calculate_ConfIntv(sum1,sumsq,n,confidence = .95):
     variance = (sumsq - sum1**2)/n
-    dev = scipy.stats.norm.ppf(confidence)*(variance**(.5))
+    dev = norm.ppf(confidence)*(variance**(.5))
     print ("We obtained a {conf}% confidence interval of\n{mean} +- {deviation}".format(mean = sum1/n,conf=confidence,deviation=dev))
