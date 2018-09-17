@@ -28,7 +28,7 @@ class RandomVariable():
             n -= 1
 
 class Simulator():
-    def __init__(self, RV = RandomVariable(), cost_f = lambda x:x, desc = 'no description', verbose = 'True'):
+    def __init__(self, RV = RandomVariable(), cost_f = lambda x:x, desc = 'no description', verbose = True):
         self.cost_function = cost_f
         self.description = desc
         self.random_variable = RV
