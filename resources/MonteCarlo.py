@@ -11,24 +11,29 @@ def foo(X):
 
 class RandomVariable():
     
-    def __init__(self, inv_t= lambda x:x, desc = 'no description',\
-                 verbose = True):
-        self.description = desc
-        self.inverse_transform = inv_t
+    def __init__(self, transform_func= lambda x:x, description = 'no description',\
+                 discrete = False, verbose = True):
+        self.description = description
+        self.transform = transform_func 
+        self.discrete = discrete
         if verbose:
-            print("testing random variable with distribution {},\n {}\n".format(self.description,self.sample()))
+            print("testing random variable with distribution {},\n {}\n".format(self.description,int(self.sample())))
                   
     def sample(self):
-        x = random()
-        return self.inverse_transform(x)
+        if self.discrete:
+            return self.transform()
+        else:
+            x = random()
+            return self.transform(x)
         
     def sample_repeated(self,n):
         while n>0:
             yield self.sample()
             n -= 1
+        
 
 class Simulator():
-    def __init__(self, RV = RandomVariable(), cost_f = lambda x:x, desc = 'no description', verbose = True):
+    def __init__(self, RV = RandomVariable('default random variable',verbose = False), cost_f = lambda x:x, desc = 'no description', verbose = True):
         self.cost_function = cost_f
         self.description = desc
         self.random_variable = RV
@@ -46,8 +51,8 @@ def inverse_exponential():
     assert(0)
     #TODO
 def inverse_continuous_power_law(x,xmin,alpha):
-    assert (alpha != -1 and xmin > 0)
-    return (xmin*((1-x)**(1/(alpha+1))))
+    assert (alpha < -1 and xmin > 0)
+    return xmin*((1-x*(alpha+1)**2))**(1.0/(alpha+1))
 
 def inverse_discrete_power_law(x,xmin,alpha):
     assert(0)
