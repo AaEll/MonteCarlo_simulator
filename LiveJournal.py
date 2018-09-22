@@ -9,9 +9,9 @@ from functools import reduce
 import random
 random.seed(2010)
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-%matplotlib inline
-
 
 def cost_powers_k(rv, k = 2):
     assert(k!=1)
@@ -60,7 +60,7 @@ Y3 = []
 
 for j in range(98):
     i = 3-j/50
-    #print ("i = {}".format(i))
+    print ("i = {}".format(i))
     cost_f = lambda x : cost_powers_k(x,i)
     Sim = MC.Simulator(rv,cost_f,'Live-Graph', verbose = False)
     y1, _, y2, _, y3, _ = sum_pair_costs(Sim, n, verbose = False)
@@ -81,3 +81,4 @@ plt.xlabel("Cuttoff Step Size")
 plt.ylabel("Memory Used")
 plt.show()
 plt.savefig('results/LiveJournal_fig.png')
+print("finished, LiveJournal")

@@ -52,7 +52,7 @@ def inverse_exponential():
     #TODO
 def inverse_continuous_power_law(x,xmin,alpha):
     assert (alpha < -1 and xmin > 0)
-    return xmin*((1-x*(alpha+1)**2))**(1.0/(alpha+1))
+    return xmin / ((1-x))**(1/(-1-alpha))
 
 def inverse_discrete_power_law(x,xmin,alpha):
     assert(0)

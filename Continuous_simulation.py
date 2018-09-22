@@ -9,6 +9,8 @@ from functools import reduce
 import random
 random.seed(2010)
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
@@ -36,7 +38,7 @@ def sum_pair_costs(sim, n,verbose = True):
     
 alpha = -2
 xmin = 1
-n = 100000000
+n = 1000000
 inv_f = lambda x : MC.inverse_continuous_power_law(x,xmin,alpha)
 rv = MC.RandomVariable(inv_f,"power law, alpha = -2, for x > 1",discrete = False,verbose = False)
 X  = []
@@ -46,7 +48,7 @@ Y3 = []
 
 for j in range(98):
     i = 3-j/50
-    #print ("i = {}".format(i))
+    print ("i = {}".format(i))
     cost_f = lambda x : cost_powers_k(x,i)
     Sim = MC.Simulator(rv,cost_f,'Live-Graph', verbose = False)
     y1, _, y2, _, y3, _ = sum_pair_costs(Sim, n, verbose = False)
@@ -66,3 +68,4 @@ plt.suptitle("", fontsize=10)
 plt.xlabel("Cuttoff Step Size")
 plt.ylabel("Memory Used")
 plt.savefig('results/continuous_fig.png')
+print("finished_continuous")
