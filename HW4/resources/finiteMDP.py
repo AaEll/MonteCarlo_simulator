@@ -122,35 +122,17 @@ def TestTD(no_episodes,alpha,MDP,V_pi):
     return meansq_TD/n
 
 _q_ = None
-_v_ = None
-_H_ = None
-_T_ = None
 def epsilon_greedy_policy(state,actions,_epsilon_ =.04):
     p = np.random.random()
     if p<_epsilon_:
         return random.choice(actions)
     else:
-        actionset = np.argwhere(_q_[state,:] == np.amax(_q_[state,:])).flatten()
-        return actions[np.random.choice(actionset)]
+        return actions[np.argmax(_q_[state,:])]
 def softmax_greedy_policy(state,actions,sigma):
     P = np.ones(len(actions))*np.e
     P = np.power(P,_q_[state,:]*sigma)
     P = P/np.sum(P)
     return np.random.choice(actions,p = P)
-def softmax_AC_policy(state,actions):
-    P = np.ones(len(actions))*np.e
-    P = np.power(P,_T_[state,:])
-    P = P/np.sum(P)
-    return np.random.choice(actions,p = P)
-def delta_softmax_AC(state,action,no_actions):
-    global _X_
-    _X_.fill(0)
-    P = np.ones(no_actions)*np.e
-    P = np.power(P,_T_[state,:])
-    P = -1*P/np.sum(P)
-    P[action] = P[action]+1
-    _X_[state,:] = P
-    return _X_
                  
 def Sarsa_tabular(no_episodes,no_states,no_actions,action_id,alpha,MDP,softmax = False, sigma = .2):
     global _q_
@@ -215,126 +197,12 @@ def Q_tabular(no_episodes,no_states,no_actions,action_id,alpha,MDP,softmax = Fal
                 break
         yield current_reward
 
-def Sarsa_Lambda_tabular(lam,no_episodes,no_states,no_actions,action_id,alpha,MDP,softmax = False, sigma = .2):
-    global _q_
-    _q_ = np.zeros((no_states,no_actions))
-    n = 0
-    while n<no_episodes:
-        if softmax :
-            MDP.policy = lambda state,actions: softmax_greedy_policy(state,actions,n*sigma)            
-        else:
-            MDP.policy = lambda state,actions: epsilon_greedy_policy(state,actions,1/(n+1))
-        n = n+1
-        Episode = MDP.Yield_run_mdp() # Test this line, I am assuming lazy evaluation
-        s = Episode.__next__()
-        a = action_id[Episode.__next__()]
-        current_reward = 0
-        t = 0
-        e = 0
-
-        while True:
-            try:
-                s_ = Episode.__next__()
-                r_ = Episode.__next__()
-                a_ = action_id[Episode.__next__()]  # StopIteration Here 
-                e = MDP.damping_constant*lam*e+1
-                d = r_ + MDP.damping_constant*_q_[s_,a_]-_q_[s,a]
-                _q_[s,a] = _q_[s,a]+ alpha*d*e
-                a = a_
-                s = s_
-                current_reward += r_*(MDP.damping_constant**t)
-                t+=1
-            except StopIteration:
-                e = MDP.damping_constant*lam*e+1
-                d = r_ -_q_[s,a]
-                _q_[s,a] = _q_[s,a]+ alpha*d*e
-                current_reward += r_*(MDP.damping_constant**t)
-                break
-        yield current_reward
-
-def Q_Lambda_tabular(lam,no_episodes,no_states,no_actions,action_id,alpha,MDP,softmax = False, sigma = .2):
-    global _q_
-    #global _H_
-    #_H_ = []
-    _q_ = np.zeros((no_states,no_actions))
-    n = 0
-    while n<no_episodes:
-        if softmax :
-            MDP.policy = lambda state,actions: softmax_greedy_policy(state,actions,n*sigma)            
-        else:
-            MDP.policy = lambda state,actions: epsilon_greedy_policy(state,actions,1/(n+1))
-        n = n+1
-        Episode = MDP.Yield_run_mdp() # Test this line, I am assuming lazy evaluation
-        s = Episode.__next__()
-        a = action_id[Episode.__next__()]
-        current_reward = 0
-        t = 0
-        e = 0
-        while True:
-            try:
-                s_ = Episode.__next__()
-                r_ = Episode.__next__()
-                #_H_.append((s,a,r_,e))
-                a_ = action_id[Episode.__next__()]                
-                e = MDP.damping_constant*lam*e+1
-                d = r_ + MDP.damping_constant*np.max(_q_[s_,:])-_q_[s,a]
-                _q_[s,a] = _q_[s,a]+ alpha*d*e
-                current_reward += r_*(MDP.damping_constant**t)     
-                a = a_
-                s = s_
-                t+=1
-            except (StopIteration):
-                e = MDP.damping_constant*lam*e+1
-                d = r_ - _q_[s,a]
-                _q_[s,a] = _q_[s,a]+ alpha*d*e
-                current_reward += r_*(MDP.damping_constant**t)
-                break
-        yield current_reward
-
-def actor_critic(alpha,beta,lam,no_episodes,no_states,no_actions,action_id,MDP):
-    global _v_
-    global _T_
-    global _X_
-    global _H_
-    _H_ = []
-    _v_ = np.zeros((no_states))
-    _T_ = np.zeros((no_states,no_actions))
-    _X_ = np.zeros((no_states,no_actions))
-    n = 0
-    while n<no_episodes:
-        MDP.policy = lambda state,actions: softmax_AC_policy(state,actions)            
-        n = n+1
-        Episode = MDP.Yield_run_mdp()
-        s = Episode.__next__()
-        a = action_id[Episode.__next__()]
-        current_reward = 0
-        t = 0
-        ev = np.zeros(no_states)
-        et = np.zeros((no_states,no_actions))
-        while True:
-            try:
-                s_ = Episode.__next__()
-                r_ = Episode.__next__()
-                a_ = action_id[Episode.__next__()]                
-                ev = MDP.damping_constant*lam*ev
-                ev[s] += 1
-                d = r_ + MDP.damping_constant*_v_[s_]-_v_[s]
-                _v_ = _v_+ alpha*d*ev
-                et = MDP.damping_constant*lam*et + delta_softmax_AC(s,a,no_actions)
-                _T_ = _T_ + beta*d*et
-                current_reward += r_*(MDP.damping_constant**t) 
-                a = a_
-                s = s_
-                t+=1
-            except (StopIteration):
-                ev = MDP.damping_constant*lam*ev
-                ev[s] += 1
-                d = r_ -_v_[s]
-                _v_ = _v_+ alpha*d*ev
-                et = MDP.damping_constant*lam*et + delta_softmax_AC(s,a,no_actions)
-                _T_ = _T_ + beta*d*et
-                current_reward += r_*(MDP.damping_constant**t)     
-                break
-        yield current_reward        
 
     
+    
+    
+    
+    
+    
+    
+
