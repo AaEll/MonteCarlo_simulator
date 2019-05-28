@@ -1,4 +1,0 @@
-  File "CartPole.py", line 8
-    %matplotlib inline
-    ^
-SyntaxError: invalid syntax
