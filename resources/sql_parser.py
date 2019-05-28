@@ -76,7 +76,7 @@ class sqlParser():
         # define the grammar
         selectStmt <<= (SELECT + ((AggregateExpression)("aggregates") | ('*' | columnNameList)("columns")) +
                         FROM + tableNameList( "tables" ) +
-                        WHERE +(whereExpression_predicates)("sketch_predicates")+ Optional((whereExpression)("predicates")))
+                        WHERE +(whereExpression_predicates)("sketch_predicates")+ Optional(AND + (whereExpression)("ignored_predicates")))
 
         simpleSQL = selectStmt
 
@@ -86,6 +86,7 @@ class sqlParser():
         return simpleSQL
     
     def __init__ (self):
+        print("bug : parser cannot handle a singular predicate")
         self.simpleSQL = self.create_sql()
         
     def parseString(self,sqlStatement, **kwargs):
@@ -117,6 +118,9 @@ def CreateJoinGraph(queryString):
             table_dict[name] = table['table']
             
     for predicate in ParseResults['sketch_predicates']:
+        print(predicate)
+        print(type(predicate))
+
         if predicate == 'and':
             pass
         elif type(predicate) == type(ParseResults):
@@ -135,6 +139,8 @@ def CreateJoinGraph(queryString):
             else:
                 assert(0) # unexpected value in sketch_predicates
         else:
+            print(predicate)
+            print(type(predicate))
             assert(0) # unexpected value in sketch_predicates
     
     G = nx.MultiGraph()
