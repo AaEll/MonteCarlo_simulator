@@ -26,14 +26,19 @@ def partial_seed (e_attr,edge_type):
     return   '-'.join(e_attr[edge_type].keys())+'-'+'-'.join(e_attr[edge_type].values())
 
 def create_full_seeds(partial_seed,num_replicas):
+    ''' takes in edge-seed and appends it to unique values, (0,1,2, ..., k), for each replicas'''
     return  [str(x) + partial_seed for x in range(num_replicas)]
 
 def average_signatures(signature_dict,num_replicas):
+    ''' takes in signatures dict and returns estimate of query size'''
     return sum([reduce(mul, signature_tuple,1 ) for signature_tuple in zip(*signature_dict.values())])/num_replicas
 
 
 
 def create_hashs(G,num_replicas,index_by = 'column'):
+    ''' for a join graph G : create signatures for nodes in G for k independent hash functions, k = num_replicas.
+        returns : dictionary of hash functions indexed by either index_by = column or index_by = seed
+    '''
     signature_funcs = {}
     skipped_set = set(['__imaginary_table__'])
     

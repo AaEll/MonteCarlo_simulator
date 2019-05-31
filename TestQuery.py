@@ -34,6 +34,7 @@ sql = """
 
 
 G = CreateJoinGraph(sql)
+
 table_file_header = [('PARTSUPP','data/partsupp.tbl',PartSupp),
                      ('LINEITEM','data/lineitem.tbl',LineItem),
                      ('REGION','data/region.tbl',Region),
@@ -46,8 +47,17 @@ table_file_header = [('PARTSUPP','data/partsupp.tbl',PartSupp),
 Cursor = tblCursor(table_file_header)
 
 _ = 2
-num_replicas = 1000
-print(average_signatures(lookup_signatures(G,create_power_set_signatures(G,Cursor,_,num_replicas)),num_replicas))
+with open('results/bias_replicas.txt','w') as f:
+    f.write(sql+'\n\n')
+    f.write('number of replicas  :  query result\n\n')
+    for i in range(2,5):
+        num_replicas = 2**(i*5)
+        result = average_signatures(\
+                    lookup_signatures(\
+                       G, create_power_set_signatures(G,Cursor,_,num_replicas))\
+                    ,num_replicas)
+        f.write('{}  :  {}\n'.format(num_replicas, result))
+
 print(sql)
 print('\n')
 

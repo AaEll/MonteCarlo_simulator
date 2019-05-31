@@ -1,0 +1,7 @@
+
+    SELECT COUNT(*)
+    FROM lineitem
+    WHERE lineitem.QUANTITY = 11 AND lineitem.linenumber =14 
+
+number of replicas  :  query result
+
